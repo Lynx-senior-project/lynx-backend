@@ -27,7 +27,7 @@ function close() {
     });
 }
 
-async function addIncomingMessage(data) {
+async function add e(data) {
     return new Promise((resolve, reject) => {
         const sql = `INSERT INTO incoming(app_id, message, incoming_timestamp) VALUES(?,?,?)`    
         const params = [data.app_id, data.message, data.incoming_timestamp]
