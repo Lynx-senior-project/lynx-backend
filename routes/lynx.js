@@ -35,5 +35,20 @@ router.post('/askpair', async function (req, res, next) {
         res.status(500).json(errorResponse)
     }
 });
+router.get('/data', async function (req, res, next) {
+    try {
+        const device = await sqlite.getDataFromDevice()
+        console.log(device);
+        res.json(device);
+    } catch (error) {
+        console.log(`Cannot get devives pair`, error);
+        const errorResponse = {
+            status: 'error',
+            message: 'Cannot get devices pair',
+            error: error
+        }
+        res.status(500).json(errorResponse)
+    }
+});
 
 module.exports = router;
