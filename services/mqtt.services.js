@@ -1,12 +1,11 @@
 const sqlite = require('./sqlite.services')
 const mqtt = require('mqtt')
-const c = mqtt.connect('mqtt://localhost:1883', {
+const client = mqtt.connect('mqtt://localhost:1883', {
     username: 'minisong',
     password: 'qwe789'
 })
 var messagePublished = false;
 let hasResponse = []
-
 const startSevices = async () => {
     await sqlite.connect()
     client.on('connect', function () {
