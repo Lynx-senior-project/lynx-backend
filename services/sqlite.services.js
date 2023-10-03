@@ -42,7 +42,7 @@ async function createRequestToPairTable() {
 //Create Table device
 async function createDeviceTable() {
     return new Promise((resolve, reject) => {
-        const sql = `CREATE TABLE devices(device_id VARCHAR(255) NOT NULL, data VARCHAR(60))`
+        const sql = `CREATE TABLE devices(device_id VARCHAR(255) NOT NULL, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)`
         // const params = [data.app_id, data.message, data.incoming_timestamp]
         db.run(sql, function (err, rows) {
             if (err) {
@@ -54,6 +54,22 @@ async function createDeviceTable() {
         });
     });
 }
+// Create table data
+async function createDataTable() {
+    return new Promise((resolve, reject) => {
+        const sql = `CREATE TABLE data(device_id VARCHAR(255) NOT NULL,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, data VARCHAR(60))`
+        // const params = [data.app_id, data.message, data.incoming_timestamp]
+        db.run(sql, function (err, rows) {
+            if (err) {
+                console.error(err.message);
+                reject(err)
+            }
+            resolve(rows)
+
+        });
+    });
+}
+
 // Insert Table ask_pair
 async function insertRequestToPair(data) {
     return new Promise((resolve, reject) => {
@@ -69,10 +85,10 @@ async function insertRequestToPair(data) {
     });
 }
 // Insert Table devices
-async function insertDeviceData(data) {
+async function insertDevice(data) {
     return new Promise((resolve, reject) => {
-        const sql = `INSERT INTO devices(device_id, data) VALUES(?,?)`
-        const params = [data.id, data.data]
+        const sql = `INSERT INTO devices(device_id, timestamp) VALUES(?,?)`
+        const params = [data.id, data.timestamp]
         db.run(sql, params, function (err) {
             if (err) {
                 console.error(err.message);
@@ -82,6 +98,22 @@ async function insertDeviceData(data) {
         });
     });
 }
+
+// Insert Table data
+async function insertData(data) {
+    return new Promise((resolve, reject) => {
+        const sql = `INSERT INTO data(device_id, timestamp,data) VALUES(?,?,?)`
+        const params = [data.id, data.timestamp, data.data]
+        db.run(sql, params, function (err) {
+            if (err) {
+                console.error(err.message);
+                reject(err)
+            }
+            resolve(true)
+        });
+    });
+}
+
 // Select all: user get devices that ask to pair
 async function getRequestToPair() {
     return new Promise((resolve, reject) => {
@@ -92,7 +124,7 @@ async function getRequestToPair() {
                 reject(err)
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
         });
     });
 }
@@ -106,24 +138,76 @@ async function getDeviceHasResponse() {
                 reject(err)
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
         });
     });
 }
-// GET data from device
-async function getDataFromDevice() {
+
+// Select response not null: get devices id that had response back
+async function checkPairDevice(id) {
     return new Promise((resolve, reject) => {
-        const sql = `SELECT * FROM devices`
+        const sql = `SELECT COUNT(*) FROM devices WHERE device_id = ?`
+        const params = [id]
+        db.run(sql, params, function (err, rows) {
+            if (err) {
+                console.error(err.message);
+                return false
+            }
+            resolve(rows)
+            console.log(typeof rows);
+
+        });
+    });
+}
+
+// Select response not null: get devices id that had response back
+async function getDataDevice(id) {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM data WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1`
+        const params = [id]
+        db.all(sql, params, function (err, rows) {
+            if (err) {
+                console.error(err.message);
+                return false
+            }
+            resolve(rows)
+            console.log(rows);
+
+        });
+    });
+}
+
+// GET data from device
+async function getDevice() {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM devices `
         db.all(sql, function (err, rows) {
             if (err) {
                 console.error(err.message);
                 reject(err)
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
         });
     });
 }
+
+// GET data from device
+async function getDataFromDevice(device, timestamp) {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM data WHERE device_id = ? AND timestamp >= ?`
+        const params = [device, timestamp]
+        db.all(sql, params, function (err, rows) {
+            if (err) {
+                console.error(err.message);
+                reject(err)
+            }
+            resolve(rows)
+            //console.log(rows);
+        });
+    });
+}
+
 // Update statement: user response back
 async function updateResponse(data) {
     return new Promise((resolve, reject) => {
@@ -135,7 +219,7 @@ async function updateResponse(data) {
                 reject(err)
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
         });
     });
 }
@@ -149,7 +233,7 @@ async function deleteSentResponse(device_id) {
                 reject(err)
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
         });
     });
 }
@@ -162,7 +246,7 @@ async function clearTable(table) {
                 reject(err);
             }
             resolve(rows)
-            console.log(rows);
+            //console.log(rows);
 
         });
     });
@@ -179,11 +263,15 @@ async function deleteTable(table) {
         });
     });
 }
-const table_name = 'devices'
+// const table_name = 'ask_pair'
+// const id = 'temp2'
 // connect()
-// clearTable(table_name)
+// getDataDevice(id)
 // close()
 module.exports = {
+    getDataDevice,
+    getDataFromDevice,
+    checkPairDevice,
     connect,
     close,
     createRequestToPairTable,
@@ -192,7 +280,8 @@ module.exports = {
     updateResponse,
     getDeviceHasResponse,
     deleteSentResponse,
-    getDataFromDevice,
-    insertDeviceData,
+    getDevice,
+    insertDevice,
+    insertData,
 
 }

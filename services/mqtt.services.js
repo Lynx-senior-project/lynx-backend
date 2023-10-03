@@ -1,6 +1,6 @@
 const sqlite = require('./sqlite.services')
 const mqtt = require('mqtt')
-const client = mqtt.connect('mqtt://localhost:1883', {
+const client = mqtt.connect('mqtt://localho:1883', {
     username: 'minisong',
     password: 'qwe789'
 })
@@ -10,13 +10,16 @@ const startSevices = async () => {
     await sqlite.connect()
     client.on('connect', function () {
         console.log('MQTT client connected')
+        client.subscribe('Lynx/permission')
     })
     client.on('error', function (error) {
         console.log(error)
     })
+
+
+    // check respones
     setInterval(async () => {
         messagePublished = false
-        client.subscribe('Lynx/permission')
         hasResponse = await sqlite.getDeviceHasResponse()
         if (hasResponse.lenght != 0) {
             for (var i = 0; i < hasResponse.length; i++) {
@@ -32,7 +35,8 @@ const startSevices = async () => {
             }
         }
 
-    }, 3000);
+    }, 1000 * 60 * 1);
+
     client.on('message', function (topic, message) {
         console.log(`${topic}:${message.toString()}`);
         if (topic == 'Lynx/permission') {
@@ -43,7 +47,7 @@ const startSevices = async () => {
         else {
             var stringMessage = message.toString()
             var json = JSON.parse(stringMessage)
-            sqlite.insertDeviceData(json)
+            sqlite.insertData(json)
         }
     })
 

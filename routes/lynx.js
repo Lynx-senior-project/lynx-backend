@@ -19,7 +19,7 @@ router.get('/askpair', async function (req, res, next) {
 });
 router.post('/askpair', async function (req, res, next) {
     try {
-        const data ={
+        const data = {
             device_id: req.body.device_id,
             response: req.body.response
         }
@@ -35,10 +35,24 @@ router.post('/askpair', async function (req, res, next) {
         res.status(500).json(errorResponse)
     }
 });
-router.get('/data', async function (req, res, next) {
+router.get('/:device/:timestamp', async function (req, res, next) {
     try {
-        const device = await sqlite.getDataFromDevice()
+        const device = await sqlite.getDataFromDevice(req.params.device, req.params.timestamp)
         console.log(device);
+        res.json(device);
+    } catch (error) {
+        console.log(`Cannot get devives pair`, error);
+        const errorResponse = {
+            status: 'error',
+            message: 'Cannot get devices pair',
+            error: error
+        }
+        res.status(500).json(errorResponse)
+    }
+});
+router.get('/:device', async function (req, res, next) {
+    try {
+        const device = await sqlite.getDataDevice(req.params.device)
         res.json(device);
     } catch (error) {
         console.log(`Cannot get devives pair`, error);
